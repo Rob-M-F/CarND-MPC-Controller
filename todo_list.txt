@@ -1,0 +1,11 @@
+main.cpp
+  main
+    * Calculate steering angle and throttle using MPC each is -1 to 1.
+
+MPC.cpp
+  MPC::Solve
+    * Set the number of model variables (states + inputs)
+	* Set the number of constraints
+	* Set the lower and upper limits for variables
+	* Set the lower and upper limits for constraints
+	* Return correct value from the solution
