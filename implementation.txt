@@ -1,0 +1,24 @@
+The Model  
+I model the vehicle state across 6 variables. The forward movement along the vehicle length is the positive x axis with movement to the left being positive on the y axis, these values are denoted as px and py respectively. Variation from the x-axis is noted as psi in radians. With velocity noted as v. Cross-track error, the distance the car is from the ideal path down the center of the lane, is noted as the cte value with the error in the psi value noted as epsi.  
+
+The solver function operates across the state variables iteratively through 10 steps. Each step is given a duration 0.2, giving a total forward prediction range of 2 seconds.  The goal of the solver is to predict the ideal steering angle and throttle at each step to minimize the value of the cost function. The steering angle is constrained to remain within the range of 25 degrees to -25 degrees while the acceleration value stays within 1 to -1.  
+
+To encourage desired behavior, weights are applied to the error values with which the vehicle is operating. Each error value is squared before the weight is applied. This provides a non-linear growth to the penalty for each error and prevents errors in the negative direction from decreasing the overall cost.
+
+The steering value (delta) and the acceleration value (a) are applied as costs twice. Once to penalize large values on these outputs and a second time to penalize changes in these values from step to step. These penalties are present to improve comfort to passengers in the vehicle by limiting sudden accelerations in any direction.
+
+The smallest penalty applied is for velocity, adding a small cost when the vehicle is travelling below the desired speed. This keeps the vehicle from finding a zero-cost location and parking.
+
+Finally, the largest costs are reserved for cross track error and psi errors. Both of these are given cost weights 2 orders of magnitude higher than the other costs.
+
+By solving for the lowest cost across 10 steps over 2 seconds, the vehicle finds a smooth and speedy route through the course.
+I tested step counts down to 5 but found they were unstable and prone to forming circles, I did not test higher than 10 in an effort to keep the computational costs down. In addition, I tested step duration values from 0.05 to 0.25 and found that at higher values, the vehicle was unable to stay on the track at higher speeds. 
+
+
+MPC Preprocessing  
+I converted the waypoints from the provided global coordinates to vehicle coordinates, with the x axis running the length of the vehicle. This allows the polyfit function as the forward path will not contain repeated X values in this space.
+In addition, I calculated the new velocity, angle, x position and y position using the delay, steering angle and throttle. This gives an estimate of where the vehicle will be when the MPC commands are actuated.  
+
+
+Handling Latency  
+My approach to handling latency was 2-fold. First, I preprocessed the x position, y position psi angle and v velocity forward to the time the actuation would occur. Secondly, I configured my MPC controller to plan for (dt + delay) steps. My theory is that at approximately 0.1 second intervals, it would plan 0.2 second movements. This will cause the model to include the latency in its planning.
